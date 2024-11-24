@@ -14,6 +14,9 @@ class hand_landmark_data(functional):
         else:
             print("WARNING !! These is already a folder named 'data',please consider moving it to prevent data loss.")
 
+        if not os.path.exists(os.path.join(Path(__file__).parent,'encode.json')):
+            open('encode.json','a+').close()
+
         cap=cv2.VideoCapture(0)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
@@ -41,9 +44,18 @@ class hand_landmark_data(functional):
         cap.release()
         cv2.destroyAllWindows()
         df=pd.DataFrame(raw_data)
-        df['label']=f"{label}_{hand}"
         df['encode']=len(os.listdir(os.path.join(Path(__file__).parent,'data')))
         df.to_csv(os.path.join(Path(__file__).parent,'data',f"{label}_{hand}.csv"),index=False)
+
+        with open('encode.json','r+') as f:
+            try:
+                label_encode=json.load(f)
+            except:
+                label_encode={}
+            if not f"{label}_{hand}" in label_encode.keys():
+                label_encode[f"{label}_{hand}"]=len(label_encode)
+                f.seek(0)
+                json.dump(label_encode,f,indent=4)
 
 if __name__=='__main__':
     hand=hand_landmark_data()

@@ -2,7 +2,9 @@ from functional import *
 
 class hand_landmark_model(functional):
     def __init__(self):
-        pass
+        with open('encode.json','r+') as f:
+            self.__label_encode=json.load(f)
+            self.__labels=sorted(list(self.__label_encode.keys()),key=lambda x:self.__label_encode[x])
 
     def _build(self,activation='relu'):
 
@@ -22,22 +24,14 @@ class hand_landmark_model(functional):
         for file in os.listdir(os.path.join(Path(__file__).parent,'data')):
             action=pd.read_csv(os.path.join(Path(__file__).parent,'data',file))
             df=pd.concat([df,action])
-        x=df.iloc[:,:-2].values
+        x=df.iloc[:,:-1].values
         y=df.iloc[:,-1].values
         self.__x_train,self.__x_test,self.__y_train,self.__y_test=train_test_split(x,y,test_size=0.3)
-        self.__labels=df[['label','encode']].drop_duplicates()
 
         model=self._build()
         model.compile(optimizer=optimizer,loss=loss)
         best_lost=tf.keras.callbacks.ModelCheckpoint(os.path.join(Path(__file__).parent,'hand_gesture_model.weights.h5'),save_weights_only=True,monitor='loss',mode='min',save_best_only=True)
         model.fit(self.__x_train,self.__y_train,epochs=epochs,batch_size=batch_size,callbacks=[best_lost])
-
-    def _predict(self,model,x):
-        encoded_label=None
-        if x.ndim==1:
-            encoded_label=model.predict(x.reshape(1,-1))
-        else:
-            encoded_label=model.predict(x)
 
     def evaluate(self):
 
@@ -103,7 +97,7 @@ class hand_landmark_model(functional):
                         mp_draw.draw_landmarks(img,hand_landmarks,mp_hand.HAND_CONNECTIONS)
                         box=self._draw_bounding_box(img,hand_landmarks,width,height)
                         points=self._normalize_point(box)
-                        label=self.__labels.loc[np.argmax(model.predict(np.array(points).reshape(1,-1)))]
+                        label=self.__labels[np.argmax(model.predict(np.array(points).reshape(1,-1)))]
                         cv2.putText(img,label,(box[0][0],box[0][1]),cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,0),thickness=5)
 
                 cv2.imshow('tracking',img)
@@ -116,4 +110,4 @@ if __name__=='__main__':
     landmark_model=hand_landmark_model()
     # landmark_model.train()
     # landmark_model.evaluate()
-    landmark_model.predict()
+    landmark_model.gesture_predict()
