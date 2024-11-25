@@ -44,7 +44,8 @@ class hand_landmark_data(functional):
         cap.release()
         cv2.destroyAllWindows()
         df=pd.DataFrame(raw_data)
-        df['encode']=len(os.listdir(os.path.join(Path(__file__).parent,'data')))
+        index=len(os.listdir(os.path.join(Path(__file__).parent,'data')))
+        df['encode']=index
         df.to_csv(os.path.join(Path(__file__).parent,'data',f"{label}_{hand}.csv"),index=False)
 
         with open('encode.json','r+') as f:
@@ -53,7 +54,7 @@ class hand_landmark_data(functional):
             except:
                 label_encode={}
             if not f"{label}_{hand}" in label_encode.keys():
-                label_encode[f"{label}_{hand}"]=len(label_encode)
+                label_encode[f"{label}_{hand}"]=index
                 f.seek(0)
                 json.dump(label_encode,f,indent=4)
 

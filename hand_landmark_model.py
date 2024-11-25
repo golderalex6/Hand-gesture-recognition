@@ -2,23 +2,39 @@ from functional import *
 
 class hand_landmark_model(functional):
     def __init__(self):
+
         with open('encode.json','r+') as f:
             self.__label_encode=json.load(f)
             self.__labels=sorted(list(self.__label_encode.keys()),key=lambda x:self.__label_encode[x])
 
-    def _build(self,activation='relu'):
+        if os.path.exists(os.path.join(Path(__file__).parent,'model_metadata.json')):
+            with open('model_metadata.json','r+') as f:
+                metadata=json.load(f)
+                self.__layers=metadata['layers']
+                self.__activation=metadata['activation']
+                self.__epochs=metadata['epochs']
+                self.__loss=metadata['loss']
+                self.__optimizer=metadata['optimizer']
+                self.__batch_size=metadata['batch_size']
+        else:
+            self.__layers=[100,50,20,10]
+            self.__activation='relu'
+            self.__epochs=10
+            self.__loss='adam'
+            self.__optimizer='sparse_categorical_crossentropy'
+            self.__batch_size=32
 
-        input_layer=tf.keras.layers.Input(shape=(43,))
-        dense_layer=tf.keras.layers.Dense(100,activation=activation)(input_layer)
-        dense_layer=tf.keras.layers.Dense(50,activation=activation)(dense_layer)
-        dense_layer=tf.keras.layers.Dense(20,activation=activation)(dense_layer)
-        dense_layer=tf.keras.layers.Dense(10,activation)(dense_layer)
-        output_layer=tf.keras.layers.Dense(len(self.__labels),activation='softmax')(dense_layer)
-        
-        model=tf.keras.Model(input_layer,output_layer)
+    def _build(self):
+        layers=list(map(lambda x:tf.keras.layers.Dense(x,activation=self.__activation),self.__layers))
+        model=tf.keras.Sequential([
+                tf.keras.layers.Input(shape=(43,)),
+                *layers,
+                tf.keras.layers.Dense(len(self.__labels),activation='softmax')
+            ])
+
         return model
 
-    def train(self,epochs=10,batch_size=32,loss='sparse_categorical_crossentropy',optimizer='Adam'):
+    def train(self):
 
         df=pd.DataFrame()
         for file in os.listdir(os.path.join(Path(__file__).parent,'data')):
@@ -29,9 +45,9 @@ class hand_landmark_model(functional):
         self.__x_train,self.__x_test,self.__y_train,self.__y_test=train_test_split(x,y,test_size=0.3)
 
         model=self._build()
-        model.compile(optimizer=optimizer,loss=loss)
+        model.compile(optimizer=self.__optimizer,loss=self.__loss)
         best_lost=tf.keras.callbacks.ModelCheckpoint(os.path.join(Path(__file__).parent,'hand_gesture_model.weights.h5'),save_weights_only=True,monitor='loss',mode='min',save_best_only=True)
-        model.fit(self.__x_train,self.__y_train,epochs=epochs,batch_size=batch_size,callbacks=[best_lost])
+        model.fit(self.__x_train,self.__y_train,epochs=self.__epochs,batch_size=self.__batch_size,callbacks=[best_lost])
 
     def evaluate(self):
 
@@ -108,6 +124,6 @@ class hand_landmark_model(functional):
         cv2.destroyAllWindows()
 if __name__=='__main__':
     landmark_model=hand_landmark_model()
-    # landmark_model.train()
-    # landmark_model.evaluate()
+    landmark_model.train()
+    landmark_model.evaluate()
     landmark_model.gesture_predict()
