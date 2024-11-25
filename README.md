@@ -36,7 +36,7 @@
 hand_landmark=hand_landmark_data()
 hand_landmark.record('hi','right',300)
 </code></pre>
-    <i>After collecting the data, the code will generate an 'encode.json' file. Avoid modifying the file's content or names to prevent errors !!</i>
+    <i>After collecting the data, the code will generate an 'encode.json' file and data folder. Avoid modifying the (file/folder)'s content or names to prevent errors !!</i>
     </li>
     <li>
         <b><ins>Trainning and evalutate model : </ins></b>
@@ -52,7 +52,7 @@ hand_landmark.record('hi','right',300)
     "batch_size":32
 }
 </code></pre>
-If the 'model_metadata.json' file is not provided, the class will default to using preset hyperparameters
+If the 'model_metadata.json' file is not provided, the class will default to using preset hyperparameters .
             <li><b>Trainning and evalutate:</b></li>
 <pre><code>from hand_landmark_model import hand_landmark_model</br>
 landmark_model=hand_landmark_model()
