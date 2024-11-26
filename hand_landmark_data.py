@@ -8,14 +8,6 @@ class hand_landmark_data(functional):
         self.__hands=self.__mp_hand.Hands()
 
     def record(self,label,hand,frame=200):
-        #Check if exist folder named 'data'.If yes,create a warn and exit.Else,create 'data' folder
-        if not os.path.exists(os.path.join(Path(__file__).parent,'data')):
-            os.mkdir(os.path.join(Path(__file__).parent,'data'))
-        else:
-            print("WARNING !! These is already a folder named 'data',please consider moving it to prevent data loss.")
-
-        if not os.path.exists(os.path.join(Path(__file__).parent,'encode.json')):
-            open('encode.json','a+').close()
 
         cap=cv2.VideoCapture(0)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080)
@@ -43,21 +35,24 @@ class hand_landmark_data(functional):
 
         cap.release()
         cv2.destroyAllWindows()
-        df=pd.DataFrame(raw_data)
-        index=len(os.listdir(os.path.join(Path(__file__).parent,'data')))
-        df['encode']=index
-        df.to_csv(os.path.join(Path(__file__).parent,'data',f"{label}_{hand}.csv"),index=False)
 
-        with open('encode.json','r+') as f:
+        with open(os.path.join(Path(__file__).parent,'encode','encode.json'),'r+') as f:
             try:
                 label_encode=json.load(f)
+                index=max(label_encode.values())+1
             except:
                 label_encode={}
+                index=0
             if not f"{label}_{hand}" in label_encode.keys():
                 label_encode[f"{label}_{hand}"]=index
                 f.seek(0)
                 json.dump(label_encode,f,indent=4)
 
+                df=pd.DataFrame(raw_data)
+                index=len(os.listdir(os.path.join(Path(__file__).parent,'data')))
+                df['encode']=index
+                df.to_csv(os.path.join(Path(__file__).parent,'data',f"{label}_{hand}.csv"),index=False)
+
 if __name__=='__main__':
     hand=hand_landmark_data()
-    hand.record('hi','right')
+    hand.record('four','left')

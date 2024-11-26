@@ -3,26 +3,18 @@ from functional import *
 class hand_landmark_model(functional):
     def __init__(self):
 
-        with open('encode.json','r+') as f:
+        with open(os.path.join(Path(__file__).parent,'encode','encode.json'),'r+') as f:
             self.__label_encode=json.load(f)
             self.__labels=sorted(list(self.__label_encode.keys()),key=lambda x:self.__label_encode[x])
 
-        if os.path.exists(os.path.join(Path(__file__).parent,'model_metadata.json')):
-            with open('model_metadata.json','r+') as f:
-                metadata=json.load(f)
-                self.__layers=metadata['layers']
-                self.__activation=metadata['activation']
-                self.__epochs=metadata['epochs']
-                self.__loss=metadata['loss']
-                self.__optimizer=metadata['optimizer']
-                self.__batch_size=metadata['batch_size']
-        else:
-            self.__layers=[100,50,20,10]
-            self.__activation='relu'
-            self.__epochs=10
-            self.__loss='adam'
-            self.__optimizer='sparse_categorical_crossentropy'
-            self.__batch_size=32
+        with open(os.path.join(Path(__file__).parent,'metadata','model_metadata.json'),'r+') as f:
+            metadata=json.load(f)
+            self.__layers=metadata['layers']
+            self.__activation=metadata['activation']
+            self.__epochs=metadata['epochs']
+            self.__loss=metadata['loss']
+            self.__optimizer=metadata['optimizer']
+            self.__batch_size=metadata['batch_size']
 
     def _build(self):
         layers=list(map(lambda x:tf.keras.layers.Dense(x,activation=self.__activation),self.__layers))
@@ -46,16 +38,13 @@ class hand_landmark_model(functional):
 
         model=self._build()
         model.compile(optimizer=self.__optimizer,loss=self.__loss)
-        best_lost=tf.keras.callbacks.ModelCheckpoint(os.path.join(Path(__file__).parent,'hand_gesture_model.weights.h5'),save_weights_only=True,monitor='loss',mode='min',save_best_only=True)
+        best_lost=tf.keras.callbacks.ModelCheckpoint(os.path.join(Path(__file__).parent,'model','hand_gesture_model.weights.h5'),save_weights_only=True,monitor='loss',mode='min',save_best_only=True)
         model.fit(self.__x_train,self.__y_train,epochs=self.__epochs,batch_size=self.__batch_size,callbacks=[best_lost])
 
     def evaluate(self):
 
-        if not os.path.exists(os.path.join(Path(__file__).parent,'hand_gesture_model.weights.h5')):
-            raise Exception('There is no pre-trained model. Please train first !!')
-
         model=self._build()
-        model.load_weights(os.path.join(Path(__file__).parent,'hand_gesture_model.weights.h5'))
+        model.load_weights(os.path.join(Path(__file__).parent,'model','hand_gesture_model.weights.h5'))
 
         y_pred=np.argmax(model.predict(self.__x_test),axis=1)
         accuracy=accuracy_score(self.__y_test,y_pred)
@@ -89,14 +78,12 @@ class hand_landmark_model(functional):
         plt.show()
 
     def gesture_predict(self):
-        if not os.path.exists(os.path.join(Path(__file__).parent,'hand_gesture_model.weights.h5')):
-            raise Exception('There is no pre-trained model. Please train first !!')
         
         mp_draw=mp.solutions.drawing_utils
         mp_hand=mp.solutions.hands
         hands=mp_hand.Hands(model_complexity=0)
         model=self._build()
-        model.load_weights(os.path.join(Path(__file__).parent,'hand_gesture_model.weights.h5'))
+        model.load_weights(os.path.join(Path(__file__).parent,'model','hand_gesture_model.weights.h5'))
 
         cap=cv2.VideoCapture(0)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080)
