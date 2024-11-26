@@ -13,11 +13,14 @@
 
 <h2 id="installation">📁<ins>Installation</ins></h2>
 <ul>
-    <li>Step 1: Clone the repo.
+    <li>Step 1 : Clone the repo.
     <pre><code>git clone https://github.com/golderalex6/Hand-gesture-recognition.git</code></pre>
     </li>
-    <li>Step 2: Install dependencies.
+    <li>Step 2 : Install dependencies.
     <pre><code>pip install -r requirements.txt</code></pre>
+    </li>
+    <li>Step 3 : Setup folders , json files.
+    <pre><code>python setup.py</code></pre>
     </li>
 </ul>
 
@@ -36,12 +39,12 @@
 hand_landmark=hand_landmark_data()
 hand_landmark.record('hi','right',300)
 </code></pre>
-    <i>After collecting the data, the code will generate an 'encode.json' file and data folder. Avoid modifying the (file/folder)'s content or names to prevent errors !!</i>
+    <i>After collecting the data, the code will generate an 'encode/encode.json' file and 'data' folder. Avoid modifying the (file/folder)'s content or names to prevent errors !!</i>
     </li>
     <li>
         <b><ins>Trainning and evalutate model : </ins></b>
         <ol>
-            <li><b>Model's hyperparameters</b> : all your model'config should be put on 'model_metadata.json' file.</li>
+            <li><b>Model's hyperparameters</b> : all your model'config should be put on 'metadata/model_metadata.json' file.</li>
 <pre><code># model_metadata.json example
 {
     "layers":[200,100,50,20,10],
@@ -53,7 +56,7 @@ hand_landmark.record('hi','right',300)
 }
 </code></pre>
 If the 'model_metadata.json' file is not provided, the class will default to using preset hyperparameters .
-            <li><b>Trainning and evalutate:</b></li>
+            <li><b>Trainning and evalutate : </b>After training, the weights will be saved in the 'model' folder. You can also place your pre-trained weights in this folder, rename them to 'hand_landmark_model.weights.h5,' and ensure they are compatible with the project for it to work correctly.</li>
 <pre><code>from hand_landmark_model import hand_landmark_model</br>
 landmark_model=hand_landmark_model()
 landmark_model.train()
